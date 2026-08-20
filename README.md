@@ -1,29 +1,29 @@
-# AI Traffic Police - Foundational Computer Vision System
+# VISIONX - Intelligent Computer Vision & Traffic Analysis System
 
 ## Project Overview
-This project is an AI-powered computer vision system designed to assist traffic authorities in monitoring roads and managing traffic. It forms the foundational part (Part 1) of the AI Traffic Police challenge, providing functionality to classify vehicle types (Car, Bus, Motorcycle, Truck) and count vehicles moving across a road.
+**VISIONX** is an AI-powered computer vision system designed to assist traffic authorities and smart cities in monitoring roads and managing traffic. It provides an end-to-end framework to classify vehicle types (Car, Bus, Motorcycle, Truck) and track & count vehicles moving across roadways in real-time.
 
 ## Problem Statement
-Traffic congestion and road incidents pose significant challenges to modern urban infrastructure. Traffic authorities need automated systems capable of extracting meaningful insights from traffic cameras. The core problem this project addresses is taking continuous video feeds or images and accurately distinguishing and counting different types of vehicles.
+Traffic congestion and road incidents pose significant challenges to modern urban infrastructure. Traffic authorities need automated systems capable of extracting meaningful insights from traffic camera feeds. The core problem **VISIONX** addresses is taking continuous video feeds or images and accurately distinguishing and counting different types of vehicles in real-time.
 
 ## Dataset Used
-The mandatory dataset provided for this challenge (`Vehicles.v1i.multiclass`) was used.
+The dataset used for this system is `Vehicles.v1i.multiclass`.
 *   **Format**: The dataset is organized in a Multi-Label Classification format (image-level labels provided via `_classes.csv` files), rather than Object Detection format (bounding boxes). 
 *   **Classes**: Bus, Motorcycle, Car, Truck.
 *   **Splits**: Train, Valid, Test splits containing preprocessed and augmented vehicle imagery.
 
 ## Methodology
-To strictly adhere to the guidelines ("No pretrained models unless mentioned otherwise") while providing a robust solution, the system is split into two logical pipelines:
+To strictly adhere to guidelines ("No pretrained models unless mentioned otherwise") while providing a robust solution, **VISIONX** is split into two logical pipelines:
 
 1.  **Vehicle Classification (Custom CNN)**:
-    Since the provided dataset contains image-level labels (no bounding boxes), I built and trained a **Custom Convolutional Neural Network (CNN)** using PyTorch from scratch. 
+    Since the provided dataset contains image-level labels (no bounding boxes), a **Custom Convolutional Neural Network (CNN)** was built and trained using PyTorch from scratch. 
     *   **Architecture**: It consists of 3 Convolutional blocks (Conv2d + ReLU + MaxPool) followed by a fully connected classifier with Dropout for regularization.
     *   **Loss Function**: `BCEWithLogitsLoss` was used because the problem is structured as a multi-label classification task.
     *   *Why?* A custom CNN represents a well-understood, simple solution built from the ground up, avoiding the "black-box" nature of large pretrained models.
 
 2.  **Vehicle Detection & Counting (OpenCV)**:
     Without bounding box annotations in the dataset, training a custom object detector like YOLO or Faster R-CNN from scratch is not feasible. To solve the counting requirement:
-    *   I used **OpenCV's Background Subtraction (MOG2)** technique.
+    *   **VISIONX** uses **OpenCV's Background Subtraction (MOG2)** technique.
     *   As vehicles move across the traffic camera's frame, the background subtractor isolates the moving objects (foreground).
     *   Contour detection (`cv2.findContours`) groups these moving pixels into bounding boxes.
     *   A virtual "counting line" is drawn on the frame. When the center of a bounding box crosses this line, the `vehicle_count` increments.
@@ -40,8 +40,8 @@ To strictly adhere to the guidelines ("No pretrained models unless mentioned oth
 
 1. **Clone the repository**:
    ```bash
-   git clone <your-repository-url>
-   cd AI_Traffic_Police_1stYear
+   git clone https://github.com/lingeshwarank2026-sudo/VISIONX.git
+   cd VISIONX
    ```
 
 2. **Install dependencies**:

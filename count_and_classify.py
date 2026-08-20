@@ -111,9 +111,9 @@ def process_video():
                     cv2.putText(frame, label, (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
 
         # Display vehicle count
-        cv2.putText(frame, f"Vehicle Count: {vehicle_count}", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 3)
+        cv2.putText(frame, f"VISIONX Vehicle Count: {vehicle_count}", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 3)
         
-        cv2.imshow("Traffic Monitor", frame)
+        cv2.imshow("VISIONX - Traffic Monitor", frame)
         
         # Press Q on keyboard to exit
         if cv2.waitKey(25) & 0xFF == ord('q'):
