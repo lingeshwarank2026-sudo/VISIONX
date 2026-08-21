@@ -21,11 +21,11 @@ if hasattr(sys.stdout, 'reconfigure'):
 from train_classifier import CustomCNN
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-CLASSES = ['0', 'Bus', 'Motorcycle', 'car', 'truck']
+TARGET_CLASSES = ['Bus', 'Motorcycle', 'Car', 'Truck']
 MODEL_PATH = "vehicle_classifier.pth"
 
 # Load Model
-model = CustomCNN(num_classes=5).to(DEVICE)
+model = CustomCNN(num_classes=4).to(DEVICE)
 try:
     model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
     print("[INFO] Loaded trained model weights from vehicle_classifier.pth")
@@ -47,12 +47,12 @@ def predict_image(image_bytes, threshold=0.50):
         outputs = model(tensor)
         probs = torch.sigmoid(outputs).squeeze().cpu().numpy()
     
-    # Class probability dictionary (skipping column 0)
+    # 4 Canonical Classes: [Bus, Motorcycle, Car, Truck]
     class_probs = {
-        'Car': float(probs[3]),
-        'Bus': float(probs[1]),
-        'Motorcycle': float(probs[2]),
-        'Truck': float(probs[4])
+        'Bus': float(probs[0]),
+        'Motorcycle': float(probs[1]),
+        'Car': float(probs[2]),
+        'Truck': float(probs[3])
     }
     
     # Find highest confidence among vehicle classes

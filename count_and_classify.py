@@ -11,11 +11,11 @@ from train_classifier import CustomCNN
 # Configuration
 MODEL_PATH = "vehicle_classifier.pth"
 VIDEO_PATH = "sample_traffic.mp4" # Replace with your video path
-CLASSES = ['0', 'Bus', 'Motorcycle', 'car', 'truck'] # Exact CSV column order (after filename)
+CLASSES = ['Bus', 'Motorcycle', 'Car', 'Truck']
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def get_model():
-    model = CustomCNN(num_classes=len(CLASSES)).to(DEVICE)
+    model = CustomCNN(num_classes=4).to(DEVICE)
     try:
         model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
         print("Loaded trained model successfully.")
@@ -39,15 +39,13 @@ def predict_crop(model, crop_img):
     
     with torch.no_grad():
         outputs = model(input_tensor)
-        # Apply sigmoid because we used BCEWithLogitsLoss
         probs = torch.sigmoid(outputs).squeeze().cpu().numpy()
         
-    # Get the class with highest probability among real vehicle classes
     real_probs = {
-        'car': float(probs[3]),
-        'Bus': float(probs[1]),
-        'Motorcycle': float(probs[2]),
-        'truck': float(probs[4])
+        'Bus': float(probs[0]),
+        'Motorcycle': float(probs[1]),
+        'Car': float(probs[2]),
+        'Truck': float(probs[3])
     }
     best_class = max(real_probs, key=real_probs.get)
     best_prob = real_probs[best_class]
