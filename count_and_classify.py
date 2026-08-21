@@ -42,16 +42,19 @@ def predict_crop(model, crop_img):
         # Apply sigmoid because we used BCEWithLogitsLoss
         probs = torch.sigmoid(outputs).squeeze().cpu().numpy()
         
-    # Get the class with highest probability (skip index 0 which is the noise '0' class)
-    best_class_idx = np.argmax(probs)
-    if probs[best_class_idx] > 0.5 and CLASSES[best_class_idx] != '0':
-        return CLASSES[best_class_idx], probs[best_class_idx]
-    # If the noise class wins, pick the best among real classes (index 1+)
-    real_probs = probs[1:]
-    real_best = np.argmax(real_probs)
-    if real_probs[real_best] > 0.4:
-        return CLASSES[real_best + 1], real_probs[real_best]
-    return "Unknown", 0.0
+    # Get the class with highest probability among real vehicle classes
+    real_probs = {
+        'car': float(probs[3]),
+        'Bus': float(probs[1]),
+        'Motorcycle': float(probs[2]),
+        'truck': float(probs[4])
+    }
+    best_class = max(real_probs, key=real_probs.get)
+    best_prob = real_probs[best_class]
+    
+    if best_prob >= 0.50:
+        return best_class, best_prob
+    return "NA", 0.0
 
 def process_video():
     model = get_model()

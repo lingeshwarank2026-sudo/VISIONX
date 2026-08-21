@@ -25,20 +25,25 @@ transform = transforms.Compose([
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
-def predict_pil_image(image):
+def predict_pil_image(image, threshold=0.50):
     tensor = transform(image.convert("RGB")).unsqueeze(0).to(DEVICE)
     with torch.no_grad():
         outputs = model(tensor)
         probs = torch.sigmoid(outputs).squeeze().cpu().numpy()
     
     class_probs = {
+        'Car': float(probs[3]),
         'Bus': float(probs[1]),
         'Motorcycle': float(probs[2]),
-        'Car': float(probs[3]),
         'Truck': float(probs[4])
     }
     best_class = max(class_probs, key=class_probs.get)
-    return best_class, class_probs[best_class], class_probs
+    best_prob = class_probs[best_class]
+    
+    if best_prob < threshold:
+        return "NA", best_prob, class_probs
+        
+    return best_class, best_prob, class_probs
 
 class VehicleClassifierGUI:
     def __init__(self, root):
@@ -102,10 +107,13 @@ class VehicleClassifierGUI:
         # Run AI prediction
         best_class, conf, all_probs = predict_pil_image(img)
         
-        icons = {'Car': '🚗', 'Bus': '🚌', 'Motorcycle': '🏍️', 'Truck': '🚚'}
-        self.result_label.config(text=f"Result: {icons.get(best_class, '')} {best_class}")
-        self.result_label.config(fg="#4ade80" if conf > 0.6 else "#fbbf24")
-        self.conf_label.config(text=f"Confidence: {conf*100:.1f}%")
+        icons = {'Car': '🚗', 'Bus': '🚌', 'Motorcycle': '🏍️', 'Truck': '🚚', 'NA': '🚫'}
+        if best_class == "NA":
+            self.result_label.config(text="Result: 🚫 NA (Non-Vehicle / Unknown)", fg="#f87171")
+            self.conf_label.config(text="No recognized vehicle detected (All probabilities < 50%)")
+        else:
+            self.result_label.config(text=f"Result: {icons.get(best_class, '')} {best_class}", fg="#4ade80")
+            self.conf_label.config(text=f"Confidence: {conf*100:.1f}%")
         
         for cat, (pb, val_lbl) in self.bars.items():
             percentage = all_probs.get(cat, 0.0) * 100

@@ -32,7 +32,7 @@ transform = transforms.Compose([
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
-def predict_image(image_bytes):
+def predict_image(image_bytes, threshold=0.50):
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     tensor = transform(image).unsqueeze(0).to(DEVICE)
     
@@ -41,17 +41,26 @@ def predict_image(image_bytes):
         probs = torch.sigmoid(outputs).squeeze().cpu().numpy()
     
     # Class probability dictionary (skipping column 0)
-    real_classes = ['Bus', 'Motorcycle', 'Car', 'Truck']
     class_probs = {
+        'Car': float(probs[3]),
         'Bus': float(probs[1]),
         'Motorcycle': float(probs[2]),
-        'Car': float(probs[3]),
         'Truck': float(probs[4])
     }
     
     # Find highest confidence among vehicle classes
     best_class = max(class_probs, key=class_probs.get)
     best_prob = class_probs[best_class]
+    
+    # If the highest probability is below threshold (i.e. not a car/bus/motorcycle/truck)
+    if best_prob < threshold:
+        return {
+            "predicted_class": "NA",
+            "confidence": round((1.0 - best_prob) * 100, 1),
+            "is_na": True,
+            "icon": "🚫",
+            "probabilities": {k: round(v * 100, 1) for k, v in class_probs.items()}
+        }
     
     # Icons for classes
     icons = {
@@ -64,6 +73,7 @@ def predict_image(image_bytes):
     return {
         "predicted_class": best_class,
         "confidence": round(best_prob * 100, 1),
+        "is_na": False,
         "icon": icons.get(best_class, '🚗'),
         "probabilities": {k: round(v * 100, 1) for k, v in class_probs.items()}
     }
@@ -519,9 +529,24 @@ HTML_PAGE = """
             resultEmpty.style.display = 'none';
             resultBox.style.display = 'block';
 
-            document.getElementById('pred-icon').innerText = data.icon;
-            document.getElementById('pred-label').innerText = data.predicted_class;
-            document.getElementById('pred-conf').innerText = data.confidence + '% Confidence';
+            const banner = document.querySelector('.pred-banner');
+            if (data.is_na) {
+                banner.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%)';
+                banner.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+                document.getElementById('pred-icon').innerText = '🚫';
+                document.getElementById('pred-label').innerText = 'NA (Not a Recognized Vehicle)';
+                document.getElementById('pred-label').style.color = '#f87171';
+                document.getElementById('pred-conf').innerText = 'No Car, Bus, Motorcycle, or Truck detected';
+                document.getElementById('pred-conf').style.color = '#fca5a5';
+            } else {
+                banner.style.background = 'linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%)';
+                banner.style.borderColor = 'rgba(56, 189, 248, 0.3)';
+                document.getElementById('pred-icon').innerText = data.icon;
+                document.getElementById('pred-label').innerText = data.predicted_class;
+                document.getElementById('pred-label').style.color = '#ffffff';
+                document.getElementById('pred-conf').innerText = data.confidence + '% Confidence';
+                document.getElementById('pred-conf').style.color = '#38bdf8';
+            }
 
             const probs = data.probabilities;
             document.getElementById('prob-car').innerText = (probs.Car || 0) + '%';
