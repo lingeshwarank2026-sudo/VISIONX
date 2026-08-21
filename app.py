@@ -10,6 +10,13 @@ from torchvision import transforms
 from PIL import Image
 import numpy as np
 
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
 # Import our trained Custom CNN
 from train_classifier import CustomCNN
 
@@ -21,9 +28,9 @@ MODEL_PATH = "vehicle_classifier.pth"
 model = CustomCNN(num_classes=5).to(DEVICE)
 try:
     model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
-    print("✅ Loaded trained model weights from vehicle_classifier.pth")
+    print("[INFO] Loaded trained model weights from vehicle_classifier.pth")
 except Exception as e:
-    print(f"⚠️ Could not load model weights: {e}")
+    print(f"[WARNING] Could not load model weights: {e}")
 model.eval()
 
 transform = transforms.Compose([
@@ -653,10 +660,10 @@ def run_server(port=5000):
     server_address = ('', port)
     httpd = HTTPServer(server_address, RequestHandler)
     url = f"http://localhost:{port}"
-    print(f"\\n" + "="*60)
-    print(f"🚀 VISIONX Vehicle Classifier Web App Running!")
-    print(f"🌐 Open in browser: {url}")
-    print(f"="*60 + "\\n")
+    print("\n" + "="*60)
+    print(f"[VISIONX] Vehicle Classifier Web App Running!")
+    print(f"[VISIONX] Open in your browser: {url}")
+    print("="*60 + "\n")
     try:
         webbrowser.open(url)
     except Exception:
@@ -664,7 +671,7 @@ def run_server(port=5000):
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
-        print("\\nShutting down server...")
+        print("\nShutting down server...")
 
 if __name__ == '__main__':
     run_server(port=5000)
