@@ -11,7 +11,7 @@ from train_classifier import CustomCNN
 # Configuration
 MODEL_PATH = "vehicle_classifier.pth"
 VIDEO_PATH = "sample_traffic.mp4" # Replace with your video path
-CLASSES = ['Bus', 'Motorcycle', 'car', 'truck'] # Adjust based on your dataset columns
+CLASSES = ['0', 'Bus', 'Motorcycle', 'car', 'truck'] # Exact CSV column order (after filename)
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def get_model():
@@ -42,10 +42,15 @@ def predict_crop(model, crop_img):
         # Apply sigmoid because we used BCEWithLogitsLoss
         probs = torch.sigmoid(outputs).squeeze().cpu().numpy()
         
-    # Get the class with highest probability
+    # Get the class with highest probability (skip index 0 which is the noise '0' class)
     best_class_idx = np.argmax(probs)
-    if probs[best_class_idx] > 0.5: # Threshold
+    if probs[best_class_idx] > 0.5 and CLASSES[best_class_idx] != '0':
         return CLASSES[best_class_idx], probs[best_class_idx]
+    # If the noise class wins, pick the best among real classes (index 1+)
+    real_probs = probs[1:]
+    real_best = np.argmax(real_probs)
+    if real_probs[real_best] > 0.4:
+        return CLASSES[real_best + 1], real_probs[real_best]
     return "Unknown", 0.0
 
 def process_video():
